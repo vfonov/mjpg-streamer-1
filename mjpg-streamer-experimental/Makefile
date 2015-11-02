@@ -23,6 +23,9 @@ CFLAGS += -DLINUX -D_GNU_SOURCE -Wall
 CFLAGS += -g -Wuninitialized
 #CFLAGS +=  -DDEBUG
 
+# we are using new version of V4L
+USE_LIBV4L2 = true
+
 # we are using the libraries "libpthread" and "libdl"
 # libpthread is used to run several tasks (virtually) in parallel
 # libdl is used to load the plugins (shared objects) at runtime
@@ -32,8 +35,8 @@ LFLAGS += -lpthread -ldl
 APP_BINARY = mjpg_streamer
 
 # define the names and targets of the plugins
-PLUGINS = input_uvc.so
-PLUGINS += output_file.so
+# PLUGINS = input_uvc.so
+PLUGINS = output_file.so
 #PLUGINS += output_udp.so
 PLUGINS += output_http.so
 #PLUGINS += input_testpicture.so
@@ -130,9 +133,8 @@ input_http.so: mjpg_streamer.h utils.h
 	cp plugins/input_http/input_http.so .
 
 input_raspicam.so: mjpg_streamer.h utils.h
-	cd plugins/input_raspicam/build; cmake ..
-	make -C plugins/input_raspicam/build
-	cp plugins/input_raspicam/build/libinput_raspicam.so ./input_raspicam.so
+	make -C plugins/input_raspicam all
+	cp plugins/input_raspicam/input_raspicam.so ./input_raspicam.so
 
 # The viewer plugin requires the SDL library for compilation
 # This is very uncommmon on embedded devices, so it is commented out and will
@@ -155,9 +157,9 @@ clean:
 	make -C plugins/output_rtsp $@
 #	make -C plugins/output_mars2020 $@
 	make -C plugins/input_http $@
+	make -C plugins/input_raspicam $@
 	rm -f *.a *.o $(APP_BINARY) core *~ *.so *.lo
-	rm -f -r plugins/input_raspicam/build/*
-	echo "This folder is where the plugin gets built" > plugins/input_raspicam/build/Readme.md
+
 
 # useful to make a backup "make tgz"
 tgz: clean
